@@ -40,10 +40,6 @@
                                     <input name="email" type="email" class="form-control" value="{{Auth::user()->email}}" />
                                 </div>
                                 <div class="mb-4">
-                                    <label class="form-label">Occupation</label>
-                                    <input name="jenjang" type="text" class="form-control" value="{{Auth::user()->jenjang}}" />
-                                </div>
-                                <div class="mb-4">
                                     <label class="form-label">Card Number</label>
                                     <input name="card_number" type="number" class="form-control" />
                                 </div>
