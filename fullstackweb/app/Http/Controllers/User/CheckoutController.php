@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\Checkout\Store;
 use App\Models\Checkout;
 use Illuminate\Http\Request;
+use App\Http\Requests\User\Checkout\Store;
 use App\Models\Camp;
 use Auth;
+use Mail;
+use App\Mail\Checkout\AfterCheckout;
 
 class CheckoutController extends Controller
 {
@@ -28,9 +30,9 @@ class CheckoutController extends Controller
      */
     public function create(Camp $camp, Request $request)
     {
-        if($camp->isRegistered) {
-            $request->session()->flash('error',"You already registered on {$camp->title} camp.");
-                return redirect(route('dashboard'));
+        if ($camp->isRegistered) {
+            $request->session()->flash('error', "You already registered on {$camp->title} camp.");
+            return redirect(route('dashboard'));
         }
         return view('checkout.create', [
             'camp' => $camp
@@ -43,7 +45,7 @@ class CheckoutController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, Camp $camp)
+    public function store(Store $request, Camp $camp)
     {
         // mapping request data
         $data = $request->all();
@@ -54,10 +56,16 @@ class CheckoutController extends Controller
         $user = Auth::user();
         $user->email = $data['email'];
         $user->name = $data['name'];
+        $user->occupation = $data['occupation'];
+        $user->phone = $data['phone'];
+        $user->address = $data['address'];
         $user->save();
 
         // create checkout
         $checkout = Checkout::create($data);
+
+        // sending email
+        Mail::to(Auth::user()->email)->send(new AfterCheckout($checkout));
 
         return redirect(route('checkout.success'));
     }
@@ -106,8 +114,14 @@ class CheckoutController extends Controller
     {
         //
     }
+
     public function success()
     {
         return view('checkout.success');
+    }
+
+    public function invoice(Checkout $checkout)
+    {
+        return $checkout;
     }
 }
